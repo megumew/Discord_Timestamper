@@ -1,6 +1,6 @@
 use chrono::*;
 
-use clap::{Args, Parser, Subcommand};
+use clap::Parser;
 
 use copypasta_ext::prelude::*;
 use copypasta_ext::x11_fork::ClipboardContext;

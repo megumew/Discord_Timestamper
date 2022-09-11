@@ -8,4 +8,5 @@ edition = "2021"
 [dependencies]
 clap = {version = "3.2.20", features = ["derive"]}
 chrono = "0.4.22"
-clipboard = "0.5.0"
+copypasta = "0.8.1"
+copypasta-ext = "0.3.9"

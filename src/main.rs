@@ -1,9 +1,9 @@
 use chrono::*;
-use clap::{Parser, Subcommand};
-extern crate clipboard;
 
-use clipboard::ClipboardContext;
-use clipboard::ClipboardProvider;
+use clap::{Parser, Subcommand};
+
+use copypasta_ext::prelude::*;
+use copypasta_ext::x11_fork::ClipboardContext;
 
 /// A Discord Timestamp Generator
 #[derive(Parser, Debug)]
@@ -24,7 +24,10 @@ fn main() {
     let args = Args::parse();
     let output = format!("<t:{}>", Utc::now().timestamp());
     println!("{}", &output);
-    let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
+    let mut ctx = ClipboardContext::new().unwrap();
+    println!(
+        "Current clipboard contents: {}",
+        ctx.get_contents().unwrap()
+    );
     ctx.set_contents(output.to_owned()).unwrap();
-    println!("Copied to clipboard!");
 }

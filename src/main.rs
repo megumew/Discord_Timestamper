@@ -13,9 +13,6 @@ struct Cli {
     ///Sets if you would like the output to be copied to clipboard
     #[clap(short, long)]
     copy: bool,
-    ///Sets if you want years to be leap year accurate. Use when years is greater than 1
-    #[clap(short, long)]
-    leap: bool,
     ///Amount of seconds from now you would like the timestamp to represent
     #[clap(short, long, default_value_t = 0)]
     sec: i64,
@@ -38,17 +35,24 @@ struct Cli {
 
 fn main() {
     let cli = Cli::parse();
-    let mut dt = Utc::now()
-        + Duration::weeks(cli.weeks)
+    let mut dt = Utc::now();
+
+    let mut count = cli.years;
+    while count > 0 {
+        if is_leap(dt.year()) {
+            dt += Duration::seconds(31622400)
+        } else {
+            dt += Duration::seconds(31536000)
+        }
+        count -= 1;
+    }
+
+    dt += Duration::weeks(cli.weeks)
         + Duration::days(cli.days)
         + Duration::hours(cli.hours)
         + Duration::minutes(cli.min)
         + Duration::seconds(cli.sec);
-    if cli.leap {
-        dt += Duration::seconds(31557600 * cli.years)
-    } else {
-        dt += Duration::days(365 * cli.years);
-    }
+
     let ts = dt.timestamp();
     let output = format!("<t:{}>", ts);
     println!("Timestamp:\n{}\n", &output);
@@ -60,5 +64,22 @@ fn main() {
         );
         ctx.set_contents(output.to_owned()).unwrap();
         println!("{} copied to clipboard!", output);
+    }
+}
+
+fn is_leap(year: i32) -> bool {
+    ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn is_leap_test() {
+        assert_eq!(is_leap(2000), true);
+        assert_eq!(is_leap(1900), false);
+        assert_eq!(is_leap(2024), true);
+        assert_eq!(is_leap(2028), true);
+        assert_eq!(is_leap(2032), true);
     }
 }

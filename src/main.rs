@@ -5,11 +5,30 @@ use clap::Parser;
 use copypasta_ext::prelude::*;
 use copypasta_ext::x11_fork::ClipboardContext;
 
+const FORMATS: [char; 7] = ['t', 'T', 'd', 'D', 'f', 'F', 'R'];
+
 /// A Discord Timestamp Generator
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
 #[clap(allow_negative_numbers = true)]
 struct Cli {
+    ///Sets the format of the timestamp.
+    ///
+    /// t - Short Time (16:20)
+    ///
+    /// T - Long Time (16:20:30)
+    ///
+    /// d - Short Date (20/04/2021)
+    ///
+    /// D - Long Date (20 April 2021),
+    ///
+    /// f - Short Date/Time (20 April 2021 16:20)
+    ///
+    /// F- Long Date/Time (Tuesday, 20 April 2021 16:20)
+    ///
+    /// R - Relative Time (	2 months ago)
+    #[clap(short, long, default_value_t = 'f', verbatim_doc_comment, value_parser = valid_format)]
+    format: char,
     ///Sets if you would like the output to be copied to clipboard
     #[clap(short, long)]
     copy: bool,
@@ -54,14 +73,21 @@ fn main() {
         + Duration::seconds(cli.sec);
 
     let ts = dt.timestamp();
-    let output = format!("<t:{}>", ts);
+    let output = format!("<t:{}:{}>", ts, cli.format);
     println!("Timestamp:\n{}\n", &output);
     if cli.copy {
         let mut ctx = ClipboardContext::new().unwrap();
-        println!(
-            "Previous clipboard contents: \n{}\n",
-            ctx.get_contents().unwrap()
-        );
+        let prev_contents = ctx.get_contents();
+        match prev_contents {
+            Ok(string) => println!("Previous clipboard contents: \n{}\n", string),
+            Err(error) => {
+                println!("Encountered an error while trying to output your previous clipboard contents: \n{}", error);
+                println!(
+                    "\x1b[93mThis often occurs from having an image saved in your clipboard!\x1b[0m\n"
+                );
+            }
+        }
+
         ctx.set_contents(output.to_owned()).unwrap();
         println!("{} copied to clipboard!", output);
     }
@@ -69,6 +95,19 @@ fn main() {
 
 fn is_leap(year: i32) -> bool {
     ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0)
+}
+
+fn valid_format(s: &str) -> Result<char, String> {
+    let c = s.chars().nth(0).unwrap();
+    for format in FORMATS {
+        if c == format {
+            return Ok(c);
+        }
+    }
+    Err(format!(
+        "Must contain one of the valid formats: {:?}",
+        FORMATS
+    ))
 }
 
 #[cfg(test)]

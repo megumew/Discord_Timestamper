@@ -5,6 +5,12 @@ This application uses the current time to find a timestamp based on the input op
 
 **The application currently does not support inputting a specific Date/Time but this may be supported in the future.**
 
+Timestamps appear in the form <t:```Time in seconds since Epoch```:```format character```> and example of this is:
+```
+<t:1662941664:F>
+```
+This would print off the Long Date/Time format when sent in the Discord client. 
+
 More information on Discord timestamps can be found on [Discords Developer Docs](https://discord.com/developers/docs/reference#message-formatting-timestamp-styles).
 
 ## Usage 
